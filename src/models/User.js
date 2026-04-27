@@ -30,8 +30,7 @@ const User = sequelize.define('User', {
   },
 }, {
   timestamps: true,
-  createdAt: 'created_at',
-  updatedAt: 'updated_at',
+  underscored: true, // Automatically handle created_at and updated_at
   hooks: {
     beforeCreate: async (user) => {
       if (user.password) {
@@ -48,7 +47,6 @@ const User = sequelize.define('User', {
   },
 });
 
-// Instance method to compare passwords
 User.prototype.comparePassword = async function (candidatePassword) {
   return await bcrypt.compare(candidatePassword, this.password);
 };

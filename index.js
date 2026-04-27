@@ -42,10 +42,9 @@ const start = async () => {
     await connectDB();
     await initRedis();
 
-    if (process.env.NODE_ENV === 'development') {
-      await sequelize.sync({ alter: true });
-      console.log('Database synced');
-    }
+    // In development/assignment, we use alter:true to keep DB in sync with models
+    await sequelize.sync({ alter: true });
+    console.log('Database synced');
 
     app.listen(PORT, () => {
       console.log(`Server listening on port ${PORT}`);

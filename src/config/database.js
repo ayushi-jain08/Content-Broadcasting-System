@@ -5,23 +5,15 @@ require('dotenv').config();
 
 const getCACert = () => {
   if (process.env.DB_CA_CERT) return process.env.DB_CA_CERT;
-
-  // Try different possible paths
   const paths = [
-    path.join(__dirname, '../ca.pem'),    // src/ca.pem (where it is currently)
-    path.join(__dirname, '../../ca.pem'), // root/ca.pem
-    path.join(process.cwd(), 'ca.pem'),   // cur-dir/ca.pem
-    path.join(process.cwd(), 'src/ca.pem') // cur-dir/src/ca.pem
+    path.join(__dirname, '../ca.pem'),
+    path.join(__dirname, '../../ca.pem'),
+    path.join(process.cwd(), 'ca.pem'),
+    path.join(process.cwd(), 'src/ca.pem')
   ];
-
   for (const p of paths) {
-    if (fs.existsSync(p)) {
-      console.log('Found CA certificate at:', p);
-      return fs.readFileSync(p);
-    }
+    if (fs.existsSync(p)) return fs.readFileSync(p);
   }
-
-  console.log('Warning: No CA certificate found. SSL may fail.');
   return null;
 };
 
@@ -41,7 +33,11 @@ const sequelize = new Sequelize(
         ca: caCert,
         rejectUnauthorized: true,
       } : false,
+      // Fix for "Incorrect datetime value"
+      dateStrings: true,
+      typeCast: true
     },
+    timezone: '+05:30', // Set to your local timezone
     pool: { max: 10, min: 0, acquire: 30000, idle: 10000 },
   }
 );
