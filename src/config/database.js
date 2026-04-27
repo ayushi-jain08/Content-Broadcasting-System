@@ -3,21 +3,25 @@ const fs = require('fs');
 const path = require('path');
 require('dotenv').config();
 
-// Helper to get CA cert safely
 const getCACert = () => {
-  // 1. Check Environment Variable (Best for Cloud/Render)
-  if (process.env.DB_CA_CERT) {
-    return process.env.DB_CA_CERT;
+  if (process.env.DB_CA_CERT) return process.env.DB_CA_CERT;
+
+  // Try different possible paths
+  const paths = [
+    path.join(__dirname, '../ca.pem'),    // src/ca.pem (where it is currently)
+    path.join(__dirname, '../../ca.pem'), // root/ca.pem
+    path.join(process.cwd(), 'ca.pem'),   // cur-dir/ca.pem
+    path.join(process.cwd(), 'src/ca.pem') // cur-dir/src/ca.pem
+  ];
+
+  for (const p of paths) {
+    if (fs.existsSync(p)) {
+      console.log('Found CA certificate at:', p);
+      return fs.readFileSync(p);
+    }
   }
 
-  // 2. Check Local File (Best for Local Development)
-  const localPath = path.join(__dirname, '../ca.pem');
-  if (fs.existsSync(localPath)) {
-    return fs.readFileSync(localPath);
-  }
-
-  // 3. Fallback (If both are missing, we log a warning but don't crash here)
-  console.log('Warning: No CA certificate found in DB_CA_CERT or src/ca.pem');
+  console.log('Warning: No CA certificate found. SSL may fail.');
   return null;
 };
 
@@ -36,14 +40,9 @@ const sequelize = new Sequelize(
       ssl: caCert ? {
         ca: caCert,
         rejectUnauthorized: true,
-      } : false, // Disable SSL if no cert is found
+      } : false,
     },
-    pool: {
-      max: 10,
-      min: 0,
-      acquire: 30000,
-      idle: 10000,
-    },
+    pool: { max: 10, min: 0, acquire: 30000, idle: 10000 },
   }
 );
 
