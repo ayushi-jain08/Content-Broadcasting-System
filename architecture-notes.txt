@@ -1,0 +1,47 @@
+Content Broadcasting System - Backend Architecture
+================================================
+
+Overview
+--------
+This system is designed to handle subject-based content distribution for educational environments. The architecture focuses on role-based security, flexible scheduling, and cloud-backed storage.
+
+1. Authentication & RBAC
+------------------------
+Security is handled using JWT. Roles (Principal and Teacher) are checked via middleware to ensure strict separation of concerns. Teachers can only manage their own content, while the Principal oversees the entire approval queue.
+
+2. Content Lifecycle & Workflow
+-------------------------------
+The system follows a state machine: uploaded -> pending -> approved/rejected. 
+Content only becomes eligible for public broadcasting after explicit Principal approval. All rejections require a reason field to be populated for teacher feedback.
+
+3. Storage Strategy
+-------------------
+The system uses a two-step storage process:
+- Files are first saved locally to the 'uploads/' folder.
+- They are then uploaded to Cloudinary to provide a stable, high-performance CDN URL for students.
+
+4. Scheduling & Rotation Logic
+------------------------------
+Each subject maintains its own rotation loop. The active content is determined dynamically using the current server time:
+- The system calculates the 'total loop duration' for all active items in a subject.
+- Then, `currentTime % totalDuration` identifies the exact item that should be visible at that moment.
+- This ensures all students see the same content simultaneously, globally synchronized.
+
+5. Database Design
+------------------
+Using MySQL with Sequelize ORM.
+Key Tables:
+- Users: Centralized auth and roles.
+- Content: Metadata and file tracking.
+- ContentSlot & ContentSchedule: Used to define subject lanes and rotation orders without bloating the main Content table.
+- Analytics: Light-weight table for tracking usage patterns.
+
+6. Folder Structure
+-------------------
+Standard Express layout (controllers, models, routes, services, middlewares) to keep the codebase modular and scalable.
+
+7. Bonus Features Implemented
+-----------------------------
+- Rate Limiting: Public broadcasting route is protected against spam.
+- Filtering/Pagination: Advanced query support for the Principal dashboard.
+- Usage tracking: Automatic view-count incrementing for analytics.
