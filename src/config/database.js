@@ -14,8 +14,8 @@ const sequelize = new Sequelize(
     logging: false,
     dialectOptions: {
       ssl: {
-        ca: fs.readFileSync(path.join(__dirname, '../../ca.pem')),
-        rejectUnauthorized: true,
+        ca: fs.readFileSync(path.join(__dirname, '../ca.pem')),
+        rejectUnauthorized: true
       },
     },
     pool: {
