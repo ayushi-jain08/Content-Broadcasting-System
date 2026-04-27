@@ -42,9 +42,9 @@ const start = async () => {
     await connectDB();
     await initRedis();
 
-    // In development/assignment, we use alter:true to keep DB in sync with models
-    await sequelize.sync({ alter: true });
-    console.log('Database synced');
+    // TEMPORARY: force: true will wipe and recreate tables to fix the schema error
+    await sequelize.sync({ force: true });
+    console.log('Database synced and reset');
 
     app.listen(PORT, () => {
       console.log(`Server listening on port ${PORT}`);
