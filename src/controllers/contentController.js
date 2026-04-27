@@ -1,5 +1,7 @@
 const { Content, ContentSlot, ContentSchedule } = require('../models');
 const cloudinary = require('cloudinary').v2;
+const sendResponse = require('../utils/response');
+const { STATUS } = require('../utils/constants');
 require('dotenv').config();
 
 cloudinary.config({
@@ -13,11 +15,11 @@ exports.uploadContent = async (req, res) => {
     const { title, description, subject, start_time, end_time, duration } = req.body;
 
     if (!req.file) {
-      return res.status(400).json({ message: 'Please upload a file' });
+      return sendResponse(res, STATUS.BAD_REQUEST, 'Please upload a file');
     }
 
     if (!title || !subject) {
-      return res.status(400).json({ message: 'Title and Subject are required' });
+      return sendResponse(res, STATUS.BAD_REQUEST, 'Title and Subject are required');
     }
 
     const result = await cloudinary.uploader.upload(req.file.path, {
@@ -38,9 +40,9 @@ exports.uploadContent = async (req, res) => {
       status: 'uploaded'
     });
 
-    res.status(201).json(content);
+    return sendResponse(res, STATUS.CREATED, 'Content uploaded successfully', content);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    return sendResponse(res, STATUS.ERROR, error.message);
   }
 };
 
@@ -62,14 +64,13 @@ exports.getAllContent = async (req, res) => {
       order: [['created_at', 'DESC']]
     });
 
-    res.json({
+    return sendResponse(res, STATUS.SUCCESS, 'Content retrieved successfully', rows, {
       total: count,
       pages: Math.ceil(count / limit),
-      currentPage: parseInt(page),
-      data: rows
+      currentPage: parseInt(page)
     });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    return sendResponse(res, STATUS.ERROR, error.message);
   }
 };
 
@@ -79,9 +80,9 @@ exports.getMyContent = async (req, res) => {
       where: { uploaded_by: req.user.id },
       order: [['created_at', 'DESC']]
     });
-    res.json(contents);
+    return sendResponse(res, STATUS.SUCCESS, 'My content retrieved successfully', contents);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    return sendResponse(res, STATUS.ERROR, error.message);
   }
 };
 
@@ -91,7 +92,7 @@ exports.updateContentStatus = async (req, res) => {
     const content = await Content.findByPk(req.params.id);
 
     if (!content) {
-      return res.status(404).json({ message: 'Content not found' });
+      return sendResponse(res, STATUS.NOT_FOUND, 'Content not found');
     }
 
     content.status = status;
@@ -119,8 +120,8 @@ exports.updateContentStatus = async (req, res) => {
     }
 
     await content.save();
-    res.json(content);
+    return sendResponse(res, STATUS.SUCCESS, `Content status updated to ${status}`, content);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    return sendResponse(res, STATUS.ERROR, error.message);
   }
 };

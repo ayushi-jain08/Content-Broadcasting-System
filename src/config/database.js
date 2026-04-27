@@ -11,7 +11,7 @@ const sequelize = new Sequelize(
     host: process.env.DB_HOST,
     port: process.env.DB_PORT,
     dialect: 'mysql',
-    logging: false, // Set to console.log to see SQL queries
+    logging: false,
     dialectOptions: {
       ssl: {
         ca: fs.readFileSync(path.join(__dirname, '../../ca.pem')),
@@ -30,9 +30,9 @@ const sequelize = new Sequelize(
 const connectDB = async () => {
   try {
     await sequelize.authenticate();
-    console.log('✅ Connection to the database has been established successfully.');
+    console.log('Connection to the database has been established successfully.');
   } catch (error) {
-    console.error('❌ Unable to connect to the database:', error);
+    console.error('Unable to connect to the database:', error);
     process.exit(1);
   }
 };

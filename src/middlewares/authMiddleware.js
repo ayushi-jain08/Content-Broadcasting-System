@@ -1,5 +1,7 @@
 const jwt = require('jsonwebtoken');
 const { User } = require('../models');
+const sendResponse = require('../utils/response');
+const { STATUS } = require('../utils/constants');
 
 const protect = async (req, res, next) => {
   let token;
@@ -14,26 +16,24 @@ const protect = async (req, res, next) => {
       });
 
       if (!req.user) {
-        return res.status(401).json({ message: 'User not found' });
+        return sendResponse(res, STATUS.UNAUTHORIZED, 'User not found');
       }
 
       next();
     } catch (error) {
-      res.status(401).json({ message: 'Not authorized' });
+      return sendResponse(res, STATUS.UNAUTHORIZED, 'Not authorized');
     }
   }
 
   if (!token) {
-    res.status(401).json({ message: 'No token provided' });
+    return sendResponse(res, STATUS.UNAUTHORIZED, 'No token provided');
   }
 };
 
 const authorize = (...roles) => {
   return (req, res, next) => {
     if (!roles.includes(req.user.role)) {
-      return res.status(403).json({
-        message: 'Permission denied',
-      });
+      return sendResponse(res, STATUS.FORBIDDEN, 'Permission denied');
     }
     next();
   };

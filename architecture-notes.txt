@@ -42,6 +42,7 @@ Standard Express layout (controllers, models, routes, services, middlewares) to 
 
 7. Bonus Features Implemented
 -----------------------------
-- Rate Limiting: Public broadcasting route is protected against spam.
-- Filtering/Pagination: Advanced query support for the Principal dashboard.
+- **Rate Limiting**: Public APIs are protected by `express-rate-limit` to prevent abuse (100 reqs/15 min).
+- **Redis Caching**: Broadcasting responses are cached in Redis (60s TTL) for high performance and minimal DB load.
+- **Pagination**: Principal's content list supports `page` and `limit` parameters for efficient data loading.
 - Usage tracking: Automatic view-count incrementing for analytics.

@@ -1,65 +1,65 @@
-const bcrypt = require('bcryptjs');
 const { User } = require('../models');
 const generateToken = require('../utils/generateToken');
+const sendResponse = require('../utils/response');
+const { STATUS } = require('../utils/constants');
 
-// @desc    Register user
-// @route   POST /api/auth/register
-// @access  Public
 exports.register = async (req, res) => {
   try {
     const { name, email, password, role } = req.body;
 
+    if (!name || !email || !password || !role) {
+      return sendResponse(res, STATUS.BAD_REQUEST, 'Please provide all required fields');
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return sendResponse(res, STATUS.BAD_REQUEST, 'Please provide a valid email address');
+    }
+
+    if (password.length < 6) {
+      return sendResponse(res, STATUS.BAD_REQUEST, 'Password must be at least 6 characters long');
+    }
+
     const userExists = await User.findOne({ where: { email } });
-
     if (userExists) {
-      return res.status(400).json({ message: 'User already exists' });
+      return sendResponse(res, STATUS.BAD_REQUEST, 'User already exists');
     }
 
-    const salt = await bcrypt.genSalt(10);
-    const password_hash = await bcrypt.hash(password, salt);
+    const user = await User.create({ name, email, password, role });
 
-    const user = await User.create({
-      name,
-      email,
-      password_hash,
-      role,
+    return sendResponse(res, STATUS.CREATED, 'User registered successfully', {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      token: generateToken(user.id, user.role)
     });
-
-    if (user) {
-      res.status(201).json({
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-        token: generateToken(user.id, user.role),
-      });
-    }
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    return sendResponse(res, STATUS.ERROR, error.message);
   }
 };
 
-// @desc    Login user
-// @route   POST /api/auth/login
-// @access  Public
 exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    const user = await User.findOne({ where: { email } });
-
-    if (user && (await bcrypt.compare(password, user.password_hash))) {
-      res.json({
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-        token: generateToken(user.id, user.role),
-      });
-    } else {
-      res.status(401).json({ message: 'Invalid email or password' });
+    if (!email || !password) {
+      return sendResponse(res, STATUS.BAD_REQUEST, 'Please provide email and password');
     }
+
+    const user = await User.findOne({ where: { email } });
+    if (!user || !(await user.comparePassword(password))) {
+      return sendResponse(res, STATUS.UNAUTHORIZED, 'Invalid email or password');
+    }
+
+    return sendResponse(res, STATUS.SUCCESS, 'Logged in successfully', {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      token: generateToken(user.id, user.role)
+    });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    return sendResponse(res, STATUS.ERROR, error.message);
   }
 };

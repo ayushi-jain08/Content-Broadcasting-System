@@ -1,8 +1,7 @@
 {
 	"info": {
-		"_postman_id": "a1b2c3d4-e5f6-4a5b-8c9d-0123456789ab",
+		"_postman_id": "06718d09-3221-4d92-9113-5735b5463f23",
 		"name": "Content Broadcasting System",
-		"description": "API collection for the Content Broadcasting System assignment.",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [
@@ -16,7 +15,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"name\": \"Teacher One\",\n    \"email\": \"teacher@test.com\",\n    \"password\": \"password123\",\n    \"role\": \"teacher\"\n}",
+							"raw": "{\n    \"name\": \"Teacher One\",\n    \"email\": \"teacher1@school.com\",\n    \"password\": \"password123\",\n    \"role\": \"teacher\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -34,8 +33,7 @@
 								"register"
 							]
 						}
-					},
-					"response": []
+					}
 				},
 				{
 					"name": "Register Principal",
@@ -44,7 +42,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"name\": \"Principal One\",\n    \"email\": \"principal@test.com\",\n    \"password\": \"password123\",\n    \"role\": \"principal\"\n}",
+							"raw": "{\n    \"name\": \"Principal Admin\",\n    \"email\": \"principal@school.com\",\n    \"password\": \"password123\",\n    \"role\": \"principal\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -62,8 +60,7 @@
 								"register"
 							]
 						}
-					},
-					"response": []
+					}
 				},
 				{
 					"name": "Login",
@@ -72,11 +69,7 @@
 							"listen": "test",
 							"script": {
 								"exec": [
-									"var jsonData = pm.response.json();",
-									"if (jsonData.token) {",
-									"    pm.environment.set(\"token\", jsonData.token);",
-									"    pm.environment.set(\"teacherId\", jsonData.id);",
-									"}"
+									"const response = pm.response.json();\nif (response.success && response.data.token) {\n    pm.collectionVariables.set(\"authToken\", response.data.token);\n    pm.collectionVariables.set(\"teacherId\", response.data.id);\n}"
 								],
 								"type": "text/javascript"
 							}
@@ -87,7 +80,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"email\": \"teacher@test.com\",\n    \"password\": \"password123\"\n}",
+							"raw": "{\n    \"email\": \"teacher1@school.com\",\n    \"password\": \"password123\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -105,36 +98,34 @@
 								"login"
 							]
 						}
-					},
-					"response": []
+					}
 				}
 			]
 		},
 		{
-			"name": "Content",
+			"name": "Teacher Endpoints",
 			"item": [
 				{
-					"name": "Upload Content (Teacher)",
+					"name": "Upload Content",
 					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{authToken}}",
+									"type": "string"
+								}
+							]
+						},
 						"method": "POST",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Bearer {{token}}",
-								"type": "text"
-							}
-						],
+						"header": [],
 						"body": {
 							"mode": "formdata",
 							"formdata": [
 								{
-									"key": "file",
-									"type": "file",
-									"src": []
-								},
-								{
 									"key": "title",
-									"value": "Maths Exam Prep",
+									"value": "Weekly Maths Prep",
 									"type": "text"
 								},
 								{
@@ -144,23 +135,31 @@
 								},
 								{
 									"key": "description",
-									"value": "Weekly preparation materials",
-									"type": "text"
-								},
-								{
-									"key": "start_time",
-									"value": "2026-04-27T10:00:00Z",
-									"type": "text"
-								},
-								{
-									"key": "end_time",
-									"value": "2026-04-30T10:00:00Z",
+									"value": "This document covers algebra and geometry basics.",
 									"type": "text"
 								},
 								{
 									"key": "duration",
 									"value": "5",
-									"type": "text"
+									"type": "text",
+									"description": "Rotation duration in minutes"
+								},
+								{
+									"key": "start_time",
+									"value": "2026-04-27T08:00:00.000Z",
+									"type": "text",
+									"description": "Start time in ISO 8601 format"
+								},
+								{
+									"key": "end_time",
+									"value": "2026-04-30T23:59:59.000Z",
+									"type": "text",
+									"description": "End time in ISO 8601 format"
+								},
+								{
+									"key": "file",
+									"type": "file",
+									"src": []
 								}
 							]
 						},
@@ -175,45 +174,23 @@
 								"upload"
 							]
 						}
-					},
-					"response": []
+					}
 				},
 				{
-					"name": "Get All Content (Principal)",
+					"name": "Get My Content",
 					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Bearer {{token}}",
-								"type": "text"
-							}
-						],
-						"url": {
-							"raw": "{{baseUrl}}/api/content/all",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"api",
-								"content",
-								"all"
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{authToken}}",
+									"type": "string"
+								}
 							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Get My Content (Teacher)",
-					"request": {
+						},
 						"method": "GET",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Bearer {{token}}",
-								"type": "text"
-							}
-						],
+						"header": [],
 						"url": {
 							"raw": "{{baseUrl}}/api/content/my",
 							"host": [
@@ -225,20 +202,74 @@
 								"my"
 							]
 						}
-					},
-					"response": []
+					}
+				}
+			]
+		},
+		{
+			"name": "Principal Endpoints",
+			"item": [
+				{
+					"name": "List All Content (Filters & Pagination)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{authToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/content/all?status=uploaded&subject=Maths&page=1&limit=10",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"content",
+								"all"
+							],
+							"query": [
+								{
+									"key": "status",
+									"value": "uploaded"
+								},
+								{
+									"key": "subject",
+									"value": "Maths"
+								},
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								}
+							]
+						}
+					}
 				},
 				{
-					"name": "Update Status (Principal)",
+					"name": "Approve Content",
 					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{authToken}}",
+									"type": "string"
+								}
+							]
+						},
 						"method": "PUT",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Bearer {{token}}",
-								"type": "text"
-							}
-						],
+						"header": [],
 						"body": {
 							"mode": "raw",
 							"raw": "{\n    \"status\": \"approved\"\n}",
@@ -249,38 +280,69 @@
 							}
 						},
 						"url": {
-							"raw": "{{baseUrl}}/api/content/:id/status",
+							"raw": "{{baseUrl}}/api/content/{{contentId}}/status",
 							"host": [
 								"{{baseUrl}}"
 							],
 							"path": [
 								"api",
 								"content",
-								":id",
+								"{{contentId}}",
 								"status"
-							],
-							"variable": [
-								{
-									"key": "id",
-									"value": "content_id_here"
-								}
 							]
 						}
-					},
-					"response": []
+					}
+				},
+				{
+					"name": "Reject Content",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{authToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"status\": \"rejected\",\n    \"rejection_reason\": \"Incorrect subject category\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/content/{{contentId}}/status",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"content",
+								"{{contentId}}",
+								"status"
+							]
+						}
+					}
 				}
 			]
 		},
 		{
-			"name": "Public",
+			"name": "Public Endpoints",
 			"item": [
 				{
-					"name": "Get Live Content",
+					"name": "Get Live Content (Subject Filter)",
 					"request": {
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{baseUrl}}/content/live/{{teacherId}}",
+							"raw": "{{baseUrl}}/content/live/{{teacherId}}?subject=Maths",
 							"host": [
 								"{{baseUrl}}"
 							],
@@ -288,10 +350,15 @@
 								"content",
 								"live",
 								"{{teacherId}}"
+							],
+							"query": [
+								{
+									"key": "subject",
+									"value": "Maths"
+								}
 							]
 						}
-					},
-					"response": []
+					}
 				}
 			]
 		}
@@ -323,12 +390,17 @@
 			"type": "string"
 		},
 		{
-			"key": "token",
+			"key": "authToken",
 			"value": "",
 			"type": "string"
 		},
 		{
 			"key": "teacherId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "contentId",
 			"value": "",
 			"type": "string"
 		}
